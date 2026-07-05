@@ -21,9 +21,10 @@ export default function ExpensesPage() {
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [form, setForm] = useState({ category: "", description: "", amount: 0, date: format(new Date(), "yyyy-MM-dd") });
 
-  const load = async () => {
-    try { const e = await getExpenses(startDate, endDate); setExpenses(e || []); } catch { toast.error("โหลดไม่สำเร็จ"); }
-  };
+  const load = () =>
+    getExpenses(startDate, endDate)
+      .then((e) => setExpenses(e || []))
+      .catch(() => toast.error("โหลดไม่สำเร็จ"));
 
   useEffect(() => { load(); }, [startDate, endDate]);
 

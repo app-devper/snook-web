@@ -27,9 +27,10 @@ export default function PromotionsPage() {
     }));
   };
 
-  const load = async () => {
-    try { const p = await getPromotions(); setPromotions(p || []); } catch { toast.error("โหลดไม่สำเร็จ"); }
-  };
+  const load = () =>
+    getPromotions()
+      .then((p) => setPromotions(p || []))
+      .catch(() => toast.error("โหลดไม่สำเร็จ"));
 
   useEffect(() => { load(); }, []);
 

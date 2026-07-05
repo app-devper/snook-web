@@ -23,10 +23,9 @@ export default function TablesPage() {
   const [editTable, setEditTable] = useState<Table | null>(null);
   const [form, setForm] = useState({ name: "", type: "STANDARD", ratePerHour: 0, description: "" });
 
-  const load = useCallback(async () => {
-    try {
+  const load = useCallback(() => {
+    const fetchTablesWithSessions = async () => {
       const t = await getTables();
-      setTables(t || []);
       const sessMap: Record<string, TableSession | null> = {};
       for (const tb of t || []) {
         if (tb.status === "IN_USE") {
@@ -37,10 +36,14 @@ export default function TablesPage() {
           }
         }
       }
-      setSessions(sessMap);
-    } catch {
-      toast.error("โหลดข้อมูลไม่สำเร็จ");
-    }
+      return { tables: t || [], sessMap };
+    };
+    return fetchTablesWithSessions()
+      .then(({ tables: t, sessMap }) => {
+        setTables(t);
+        setSessions(sessMap);
+      })
+      .catch(() => toast.error("โหลดข้อมูลไม่สำเร็จ"));
   }, []);
 
   useEffect(() => { load(); }, [load]);

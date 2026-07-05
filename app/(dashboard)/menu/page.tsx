@@ -25,11 +25,11 @@ export default function MenuPage() {
   const [itemForm, setItemForm] = useState({ name: "", category: "", price: 0, costPrice: 0, quantity: 0, unit: "", status: "ACTIVE", imageUrl: "" });
   const [filterCat, setFilterCat] = useState("");
 
-  const load = async () => {
-    const [cats, its] = await Promise.all([getMenuCategories(), getMenuItems(filterCat)]);
-    setCategories(cats || []);
-    setItems(its || []);
-  };
+  const load = () =>
+    Promise.all([getMenuCategories(), getMenuItems(filterCat)]).then(([cats, its]) => {
+      setCategories(cats || []);
+      setItems(its || []);
+    });
 
   useEffect(() => { load(); }, [filterCat]);
 

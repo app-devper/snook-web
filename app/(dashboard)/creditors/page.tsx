@@ -21,9 +21,10 @@ export default function CreditorsPage() {
   const [payments, setPayments] = useState<CreditorPayment[]>([]);
   const [payForm, setPayForm] = useState({ amount: 0, type: "CASH", note: "" });
 
-  const load = async () => {
-    try { const c = await getCreditors(filter); setCreditors(c || []); } catch { toast.error("โหลดไม่สำเร็จ"); }
-  };
+  const load = () =>
+    getCreditors(filter)
+      .then((c) => setCreditors(c || []))
+      .catch(() => toast.error("โหลดไม่สำเร็จ"));
 
   useEffect(() => { load(); }, [filter]);
 
