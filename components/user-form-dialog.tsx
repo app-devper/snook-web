@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,11 +42,14 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit, loading, client
     clientId: "",
   });
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setForm({ firstName: "", lastName: "", phone: "", email: "", username: "", password: "", clientId });
     }
-  }, [open, clientId]);
+  }
 
   const handleChange = (field: keyof CreateUserForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -125,7 +128,10 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit, loading }: 
     email: "",
   });
 
-  useEffect(() => {
+  const [prevUser, setPrevUser] = useState(user);
+
+  if (user !== prevUser) {
+    setPrevUser(user);
     if (user) {
       setForm({
         firstName: user.firstName || "",
@@ -134,7 +140,7 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit, loading }: 
         email: user.email || "",
       });
     }
-  }, [user]);
+  }
 
   const handleChange = (field: keyof UpdateUserForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -191,9 +197,12 @@ interface SetPasswordDialogProps {
 export function SetPasswordDialog({ open, onOpenChange, user, onSubmit, loading }: SetPasswordDialogProps) {
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setPassword("");
-  }, [open]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

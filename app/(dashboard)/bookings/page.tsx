@@ -19,16 +19,16 @@ export default function BookingsPage() {
   const [tables, setTables] = useState<TableType[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState(format(new Date(Date.now() + 7 * 86400000), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(() => format(new Date(Date.now() + 7 * 86400000), "yyyy-MM-dd"));
   const [form, setForm] = useState({ tableId: "", customerName: "", customerPhone: "", bookingDate: format(new Date(), "yyyy-MM-dd"), startTime: "10:00", endTime: "12:00", note: "" });
 
-  const load = async () => {
-    try {
-      const [b, t] = await Promise.all([getBookings(startDate, endDate), getTables()]);
-      setBookings(b || []);
-      setTables(t || []);
-    } catch { toast.error("โหลดไม่สำเร็จ"); }
-  };
+  const load = () =>
+    Promise.all([getBookings(startDate, endDate), getTables()])
+      .then(([b, t]) => {
+        setBookings(b || []);
+        setTables(t || []);
+      })
+      .catch(() => toast.error("โหลดไม่สำเร็จ"));
 
   useEffect(() => { load(); }, [startDate, endDate]);
 
