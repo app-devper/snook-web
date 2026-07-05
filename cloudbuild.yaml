@@ -1,0 +1,19 @@
+steps:
+  - name: node:22
+    entrypoint: npm
+    args: [ci]
+  - name: node:22
+    entrypoint: npm
+    args: [run, build]
+  - name: node:22
+    entrypoint: npx
+    args:
+      - firebase-tools
+      - deploy
+      - --only
+      - hosting:devper-snook
+      - --project
+      - devperpos
+      - --non-interactive
+options:
+  logging: CLOUD_LOGGING_ONLY
