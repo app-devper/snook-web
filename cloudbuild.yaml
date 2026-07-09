@@ -5,6 +5,8 @@ steps:
   - name: node:22
     entrypoint: npm
     args: [run, build]
+    env:
+      - NEXT_PUBLIC_UM_API_URL=https://api.devper.app/api/um/v1
   - name: node:22
     entrypoint: npx
     args:

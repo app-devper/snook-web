@@ -10,6 +10,8 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_UM_API_URL: https://api.devper.app/api/um/v1
     steps:
       - uses: actions/checkout@v4
 
