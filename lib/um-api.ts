@@ -8,6 +8,7 @@ import type {
   UmUser,
   UpdateUserRequest,
   ChangePasswordRequest,
+  UmUserRules,
 } from "@/types/um";
 
 const umApi = axios.create({
@@ -54,6 +55,11 @@ export async function changePassword(data: ChangePasswordRequest): Promise<void>
 
 export async function getUsers(): Promise<UmUser[]> {
   const res = await umApi.get<UmUser[]>("/user");
+  return res.data;
+}
+
+export async function getUserRules(): Promise<UmUserRules> {
+  const res = await umApi.get<UmUserRules>("/user/rules");
   return res.data;
 }
 
