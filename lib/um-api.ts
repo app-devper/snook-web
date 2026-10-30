@@ -26,6 +26,12 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
   return res.data;
 }
 
+/** Exchanges the one-time ticket UM's Apps page hands over (um-api ADR-0011). */
+export async function exchangeTicket(ticket: string): Promise<LoginResponse> {
+  const res = await umApi.post<LoginResponse>("/auth/exchange", { ticket });
+  return res.data;
+}
+
 export async function keepAlive(): Promise<KeepAliveResponse> {
   const res = await umApi.get<KeepAliveResponse>("/auth/keep-alive");
   return res.data;
