@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login, getSystem } from "@/lib/um-api";
-import { setToken, setSnookApiHost } from "@/lib/auth";
+import { login } from "@/lib/um-api";
+import { startSnookSession, SYSTEM_CODE } from "@/lib/sign-in";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +22,8 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await login({ username, password, system: "SNOOK" });
-      setToken(res.accessToken);
-      const sys = await getSystem();
-      setSnookApiHost(sys.host);
+      const res = await login({ username, password, system: SYSTEM_CODE });
+      await startSnookSession(res.accessToken);
       router.replace("/dashboard");
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Login failed";
