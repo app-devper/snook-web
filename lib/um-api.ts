@@ -32,6 +32,20 @@ export async function exchangeTicket(ticket: string): Promise<LoginResponse> {
   return res.data;
 }
 
+/** Why a keep-alive failed: UM refused the token, or UM could not be reached. */
+export type KeepAliveFailure = "refused" | "unreachable";
+
+/**
+ * Only an answer from UM below 500 refuses the session. Being offline or a UM
+ * 5xx is not a refusal, so the user stays signed in (as pharmacy-web does).
+ */
+export function keepAliveFailureOf(error: unknown): KeepAliveFailure {
+  if (axios.isAxiosError(error) && error.response && error.response.status < 500) {
+    return "refused";
+  }
+  return "unreachable";
+}
+
 export async function keepAlive(): Promise<KeepAliveResponse> {
   const res = await umApi.get<KeepAliveResponse>("/auth/keep-alive");
   return res.data;

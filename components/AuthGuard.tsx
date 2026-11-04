@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getToken, setToken, removeToken, setUserRole } from "@/lib/auth";
-import { keepAlive, getUserInfo } from "@/lib/um-api";
+import { keepAlive, keepAliveFailureOf, getUserInfo } from "@/lib/um-api";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -15,19 +15,29 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       router.replace("/login");
       return;
     }
-    keepAlive()
-      .then(async (res) => {
-        setToken(res.accessToken);
-        try {
-          const user = await getUserInfo();
-          setUserRole(user.role);
-        } catch { /* ignore */ }
-        setChecked(true);
-      })
-      .catch(() => {
+    const check = async () => {
+      let res: Awaited<ReturnType<typeof keepAlive>>;
+      try {
+        res = await keepAlive();
+      } catch (error: unknown) {
+        // Only the keep-alive call itself is classified: an error anywhere
+        // else below must not be mistaken for "UM is unreachable".
+        if (keepAliveFailureOf(error) === "unreachable") {
+          setChecked(true);
+          return;
+        }
         removeToken();
         router.replace("/login");
-      });
+        return;
+      }
+      setToken(res.accessToken);
+      try {
+        const user = await getUserInfo();
+        setUserRole(user.role);
+      } catch { /* ignore */ }
+      setChecked(true);
+    };
+    void check();
   }, [router]);
 
   if (!checked) {
