@@ -32,18 +32,16 @@ export async function exchangeTicket(ticket: string): Promise<LoginResponse> {
   return res.data;
 }
 
-/** Why a keep-alive failed: UM refused the token, or UM could not be reached. */
-export type KeepAliveFailure = "refused" | "unreachable";
+/** Why a call to UM failed: UM refused the token, or UM could not be reached. */
+export type UmFailure = "refused" | "unreachable";
 
 /**
- * Only an answer from UM below 500 refuses the session. Being offline or a UM
- * 5xx is not a refusal, so the user stays signed in (as pharmacy-web does).
+ * Only UM saying 401 or 403 refuses the session; a 429 during a deploy, an edge
+ * 404 or any 5xx is not a refusal (pharmacy-web applies the same rule).
  */
-export function keepAliveFailureOf(error: unknown): KeepAliveFailure {
-  if (axios.isAxiosError(error) && error.response && error.response.status < 500) {
-    return "refused";
-  }
-  return "unreachable";
+export function umFailureOf(error: unknown): UmFailure {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+  return status === 401 || status === 403 ? "refused" : "unreachable";
 }
 
 export async function keepAlive(): Promise<KeepAliveResponse> {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getToken, setToken, removeToken, setUserRole } from "@/lib/auth";
-import { keepAlive, keepAliveFailureOf, getUserInfo } from "@/lib/um-api";
+import { keepAlive, umFailureOf, getUserInfo } from "@/lib/um-api";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       } catch (error: unknown) {
         // Only the keep-alive call itself is classified: an error anywhere
         // else below must not be mistaken for "UM is unreachable".
-        if (keepAliveFailureOf(error) === "unreachable") {
+        if (umFailureOf(error) === "unreachable") {
           setChecked(true);
           return;
         }
