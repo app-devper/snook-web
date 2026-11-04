@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getToken, setToken, removeToken, setUserRole } from "@/lib/auth";
-import { keepAlive, getUserInfo } from "@/lib/um-api";
+import { keepAlive, keepAliveFailureOf, getUserInfo } from "@/lib/um-api";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -24,7 +24,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         } catch { /* ignore */ }
         setChecked(true);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        if (keepAliveFailureOf(error) === "unreachable") {
+          setChecked(true);
+          return;
+        }
         removeToken();
         router.replace("/login");
       });
