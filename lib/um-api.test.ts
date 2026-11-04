@@ -12,6 +12,7 @@ describe("umFailureOf", () => {
   });
   it("anything that is not a refusal keeps the user signed in", () => {
     expect(umFailureOf(answer(429))).toBe("unreachable");
+    expect(umFailureOf(answer(400))).toBe("unreachable");
     expect(umFailureOf(answer(404))).toBe("unreachable");
     expect(umFailureOf(answer(503))).toBe("unreachable");
     expect(umFailureOf(new AxiosError("offline", "ERR_NETWORK"))).toBe("unreachable");

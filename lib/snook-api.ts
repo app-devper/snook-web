@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getToken, getSnookApiHost } from "./auth";
-import { endSessionInterceptor } from "./session-end";
+import { carriesSession, endSessionInterceptor } from "./session-end";
 import type {
   Table,
   TableSession,
@@ -27,7 +27,7 @@ snookApi.interceptors.request.use((config) => {
   const host = getSnookApiHost();
   if (host) config.baseURL = `${host}/api/snook/v1`;
   const token = getToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token && carriesSession(String(config.url ?? ""))) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

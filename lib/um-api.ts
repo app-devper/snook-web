@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getToken } from "./auth";
-import { endSessionInterceptor } from "./session-end";
+import { carriesSession, endSessionInterceptor } from "./session-end";
 import type {
   LoginRequest,
   LoginResponse,
@@ -18,7 +18,7 @@ const umApi = axios.create({
 
 umApi.interceptors.request.use((config) => {
   const token = getToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token && carriesSession(String(config.url ?? ""))) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getToken, setToken, removeToken, setUserRole } from "@/lib/auth";
+import axios from "axios";
+import { replacedByAnotherSignIn, sentTokenOf } from "@/lib/session-end";
 import { keepAlive, umFailureOf, getUserInfo } from "@/lib/um-api";
 
 /** How often a signed-in page re-checks its token with UM. */
@@ -27,6 +29,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         // Only the keep-alive call itself is classified: an error anywhere
         // else below must not be mistaken for "UM is unreachable".
         if (umFailureOf(error) === "unreachable") {
+          setChecked(true);
+          return true;
+        }
+        const sent = sentTokenOf(axios.isAxiosError(error) ? error.config : undefined);
+        if (replacedByAnotherSignIn(sent, getToken())) {
+          // Another tab signed in again; its session is not ours to end.
           setChecked(true);
           return true;
         }
