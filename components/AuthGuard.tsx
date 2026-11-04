@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { getToken, setToken, removeToken, setUserRole } from "@/lib/auth";
 import { keepAlive, umFailureOf, getUserInfo } from "@/lib/um-api";
 
+/** How often a signed-in page re-checks its token with UM. */
+export const KEEP_ALIVE_INTERVAL_MS = 10 * 60 * 1000;
+
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
@@ -15,7 +18,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       router.replace("/login");
       return;
     }
-    const check = async () => {
+    // Resolves false when UM refused the token (session ended), true otherwise.
+    const check = async (): Promise<boolean> => {
       let res: Awaited<ReturnType<typeof keepAlive>>;
       try {
         res = await keepAlive();
@@ -24,11 +28,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         // else below must not be mistaken for "UM is unreachable".
         if (umFailureOf(error) === "unreachable") {
           setChecked(true);
-          return;
+          return true;
         }
         removeToken();
         router.replace("/login");
-        return;
+        return false;
       }
       setToken(res.accessToken);
       try {
@@ -36,8 +40,19 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         setUserRole(user.role);
       } catch { /* ignore */ }
       setChecked(true);
+      return true;
     };
-    void check();
+
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+    let unmounted = false;
+    void check().then((signedIn) => {
+      if (!signedIn || unmounted) return;
+      intervalId = setInterval(() => void check(), KEEP_ALIVE_INTERVAL_MS);
+    });
+    return () => {
+      unmounted = true;
+      if (intervalId !== undefined) clearInterval(intervalId);
+    };
   }, [router]);
 
   if (!checked) {

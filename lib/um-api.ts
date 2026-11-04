@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getToken } from "./auth";
+import { endSessionInterceptor } from "./session-end";
 import type {
   LoginRequest,
   LoginResponse,
@@ -20,6 +21,8 @@ umApi.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+umApi.interceptors.response.use((response) => response, endSessionInterceptor);
 
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   const res = await umApi.post<LoginResponse>("/auth/login", data);
