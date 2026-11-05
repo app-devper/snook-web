@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getToken } from "./auth";
+import { carriesSession, endSessionInterceptor } from "./session-end";
 import type {
   LoginRequest,
   LoginResponse,
@@ -17,9 +18,11 @@ const umApi = axios.create({
 
 umApi.interceptors.request.use((config) => {
   const token = getToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token && carriesSession(String(config.url ?? ""))) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+umApi.interceptors.response.use((response) => response, endSessionInterceptor);
 
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   const res = await umApi.post<LoginResponse>("/auth/login", data);
@@ -30,6 +33,18 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
 export async function exchangeTicket(ticket: string): Promise<LoginResponse> {
   const res = await umApi.post<LoginResponse>("/auth/exchange", { ticket });
   return res.data;
+}
+
+/** Why a call to UM failed: UM refused the token, or UM could not be reached. */
+export type UmFailure = "refused" | "unreachable";
+
+/**
+ * Only UM saying 401 or 403 refuses the session; a 429 during a deploy, an edge
+ * 404 or any 5xx is not a refusal (pharmacy-web applies the same rule).
+ */
+export function umFailureOf(error: unknown): UmFailure {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+  return status === 401 || status === 403 ? "refused" : "unreachable";
 }
 
 export async function keepAlive(): Promise<KeepAliveResponse> {
